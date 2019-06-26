@@ -286,8 +286,10 @@ class enrol_autoenrol_plugin extends enrol_plugin {
             throw new coding_exception('Invalid enrol instance type!');
         }
         if ($this->enrol_allowed($user, $instance)) {
-            $this->enrol_user($instance, $user->id, $instance->customint3, time(), 0);
-            $this->process_group($instance, $user);
+            if ($instance->customint1 != 2) { // if = 2, access without enrolment
+                $this->enrol_user($instance, $user->id, $instance->customint3, time(), 0);
+                $this->process_group($instance, $user);
+            }
             // Send welcome message.
             if ($instance->customint7 != ENROL_DO_NOT_SEND_EMAIL) {
                 $this->email_welcome_message($instance, $user);

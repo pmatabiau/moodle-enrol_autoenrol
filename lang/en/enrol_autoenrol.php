@@ -56,6 +56,7 @@ $string['role_help'] = 'Power users can use this setting to change the permissio
 $string['method'] = 'Enrol When';
 $string['m_site'] = 'Logging into Site';
 $string['m_course'] = 'Loading the Course';
+$string['m_never'] = 'Never';
 $string['method_help'] = 'Power users can use this setting to change the plugin\'s behaviour so that users are enrolled to the course upon logging in rather than waiting for them to access the course. This is helpful for courses which should be visible on a users "my courses" list by default.';
 
 $string['groupon'] = 'Group By';

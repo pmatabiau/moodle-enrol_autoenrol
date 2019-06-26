@@ -114,7 +114,7 @@ class enrol_autoenrol_edit_form extends moodleform {
         $this->_form->setDefault('customint3', $plugin->get_config('defaultrole'));
         $this->_form->setType('customint3', PARAM_INT);
 
-        $method = array(get_string('m_course', 'enrol_autoenrol'), get_string('m_site', 'enrol_autoenrol'));
+        $method = array(get_string('m_course', 'enrol_autoenrol'), get_string('m_site', 'enrol_autoenrol'), get_string('m_never', 'enrol_autoenrol'));
         $this->_form->addElement('select', 'customint1', get_string('method', 'enrol_autoenrol'), $method);
         if (!has_capability('enrol/autoenrol:method', $context)) {
             $this->_form->disabledIf('customint1', 'customchar3', 'eq', '-');
