@@ -286,7 +286,18 @@ class enrol_autoenrol_plugin extends enrol_plugin {
             throw new coding_exception('Invalid enrol instance type!');
         }
         if ($this->enrol_allowed($user, $instance)) {
-            if ($instance->customint1 != 2) { // if = 2, access without enrolment
+            if ($instance->customint1 == 2) { // if = 2, access without enrolment
+                $context = context_course::instance($instance->courseid);
+                $roleid = (int) $instance->customint3;
+                // Si on inscrit pas vraiment, il faut hacker 2 points pour que le role defini dans l'autoenrol soit pris en compte
+                //   (sinon, ca prend role system ou a defaut, user (id 7):
+                // - Hack pour les has_capability() qui suivront
+                $user->access['ra'][$context->path][$roleid] = $roleid;
+                // - inserer dans {role_assignments}, utiliser field component pour savoir quoi purger plus tard
+                //   sinon la query dans lib/accesslib.php>get_switchable_roles() retourne pas de roles switchages
+                //   (effet de bord : sans purge, si on change le role dans l'autoenrol, les roles s'accumulent. Visible quand on inscrit manuelmnt le user)
+//                role_assign($roleid, $user->id, $context->id, 'enrol_' . $this->get_name(), $instance->id);
+            } else {
                 $this->enrol_user($instance, $user->id, $instance->customint3, time(), 0);
                 $this->process_group($instance, $user);
             }
@@ -627,10 +638,10 @@ class enrol_autoenrol_plugin extends enrol_plugin {
      * @param stdClass $instance
      */
     public function delete_instance($instance) {
-        global $DB;
+        global $DB, $CFG;
 
         if ($this->get_config('removegroups')) {
-            require_once("../group/lib.php");
+            require_once($CFG->dirroot . '/group/lib.php');
 
             $groups = $DB->get_records_sql("SELECT * FROM {groups} WHERE " . $DB->sql_like('idnumber', ':idnumber'),
                     array('idnumber' => "autoenrol|$instance->id|%"));
