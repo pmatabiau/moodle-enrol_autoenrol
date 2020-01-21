@@ -114,7 +114,7 @@ class enrol_autoenrol_edit_form extends moodleform {
         $this->_form->setDefault('customint3', $plugin->get_config('defaultrole'));
         $this->_form->setType('customint3', PARAM_INT);
 
-        $method = array(get_string('m_course', 'enrol_autoenrol'), get_string('m_site', 'enrol_autoenrol'), get_string('m_never', 'enrol_autoenrol'));
+        $method = array(get_string('m_course', 'enrol_autoenrol'), get_string('m_site', 'enrol_autoenrol'));
         $this->_form->addElement('select', 'customint1', get_string('method', 'enrol_autoenrol'), $method);
         if (!has_capability('enrol/autoenrol:method', $context)) {
             $this->_form->disabledIf('customint1', 'customchar3', 'eq', '-');
@@ -172,12 +172,12 @@ class enrol_autoenrol_edit_form extends moodleform {
 
         $fields = array('-' => get_string('choose'));
         $fields['auth'] = get_string('authentication');
-        $fields['lang'] = get_string('language');
+//        $fields['lang'] = get_string('language');
         $fields['department'] = get_string('department');
-        $fields['institution'] = get_string('institution');
-        $fields['address'] = get_string('address');
-        $fields['city'] = get_string('city');
-        $fields['email'] = get_string('email');
+//        $fields['institution'] = get_string('institution');
+//        $fields['address'] = get_string('address');
+//        $fields['city'] = get_string('city');
+//        $fields['email'] = get_string('email');
 
         $customfields = $DB->get_records('user_info_field');
         if (!empty($customfields)) {

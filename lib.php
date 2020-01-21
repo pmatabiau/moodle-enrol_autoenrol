@@ -45,7 +45,8 @@ class enrol_autoenrol_plugin extends enrol_plugin {
      * @return array
      */
     public function get_info_icons(array $instances) {
-        return array(new pix_icon('icon', get_string('pluginname', 'enrol_autoenrol'), 'enrol_autoenrol'));
+//        return array(new pix_icon('icon', get_string('pluginname', 'enrol_autoenrol'), 'enrol_autoenrol'));
+        return array();
     }
 
     /**
@@ -220,6 +221,11 @@ class enrol_autoenrol_plugin extends enrol_plugin {
 
             $standardfields = array('auth', 'lang', 'department', 'institution', 'address', 'city', 'email');
             if (in_array($profileattribute, $standardfields)) {
+// ETS surcharge de $user->department:
+              if ($profileattribute == 'department') {
+                $this->ETS_user_department($user);
+              }
+// fin ETS surcharge
                 if (!isset($user->auth)) {
                     $user->auth = '';
                 }
@@ -253,10 +259,17 @@ class enrol_autoenrol_plugin extends enrol_plugin {
             $match = false;
             if ($instance->customint4) {
                 // Allow partial.
+								if (is_array($uservalue)){
+									$uservalue = implode(',', $uservalue);
+								}
                 $match = mb_strpos(mb_strtolower($uservalue), mb_strtolower($instance->customchar1));
             } else {
                 // Require exact.
-                $match = $instance->customchar1 == $uservalue;
+							if (is_array($uservalue)){
+								$match = in_array($instance->customchar1, $uservalue);
+							} else {
+								$match = $instance->customchar1 == $uservalue;
+							}
             }
 
             if ($match === false) {
@@ -286,9 +299,10 @@ class enrol_autoenrol_plugin extends enrol_plugin {
             throw new coding_exception('Invalid enrol instance type!');
         }
         if ($this->enrol_allowed($user, $instance)) {
-            if ($instance->customint1 == 2) { // if = 2, access without enrolment
                 $context = context_course::instance($instance->courseid);
                 $roleid = (int) $instance->customint3;
+//          $this->enrol_user($instance, $user->id, $instance->customint3, time(), 0);
+//          $this->process_group($instance, $user);
                 // Si on inscrit pas vraiment, il faut hacker 2 points pour que le role defini dans l'autoenrol soit pris en compte
                 //   (sinon, ca prend role system ou a defaut, user (id 7):
                 // - Hack pour les has_capability() qui suivront
@@ -297,10 +311,7 @@ class enrol_autoenrol_plugin extends enrol_plugin {
                 //   sinon la query dans lib/accesslib.php>get_switchable_roles() retourne pas de roles switchages
                 //   (effet de bord : sans purge, si on change le role dans l'autoenrol, les roles s'accumulent. Visible quand on inscrit manuelmnt le user)
 //                role_assign($roleid, $user->id, $context->id, 'enrol_' . $this->get_name(), $instance->id);
-            } else {
-                $this->enrol_user($instance, $user->id, $instance->customint3, time(), 0);
-                $this->process_group($instance, $user);
-            }
+
             // Send welcome message.
             if ($instance->customint7 != ENROL_DO_NOT_SEND_EMAIL) {
                 $this->email_welcome_message($instance, $user);
@@ -706,6 +717,11 @@ class enrol_autoenrol_plugin extends enrol_plugin {
             } else {
                 $standardfields = array('auth', 'lang', 'department', 'institution', 'address', 'city', 'email');
                 if (in_array($profileattribute, $standardfields)) {
+// ETS surcharge de $user->department:
+                  if ($profileattribute == 'department') {
+                    $this->ETS_user_department($user);
+                  }
+// fin ETS surcharge
                     $name = $user->$profileattribute;
                 } else {
                     require_once($CFG->dirroot.'/user/profile/lib.php');
@@ -872,5 +888,21 @@ class enrol_autoenrol_plugin extends enrol_plugin {
         }
 
         return $contact;
+    }
+
+    private function ETS_user_department(&$user) {
+      global $CFG;
+      $dsnLocal = 'mysql:host='.$CFG->dbhost.';dbname=comptedept;';
+      $pdoLocal = new PDO($dsnLocal, $CFG->dbuser, $CFG->dbpass);
+
+      $query = "SELECT autorisation FROM mdl_ets_user_autorisation WHERE userid=?";
+      $prep = $pdoLocal->prepare($query);
+      $prep->execute([$user->id]);
+      $resultAuto = $prep->fetchAll(PDO::FETCH_COLUMN);
+
+			if (count($resultAuto) == 1)
+				$user->department = $resultAuto[0];
+			else if (count($resultAuto) > 1)
+				$user->department = $resultAuto;
     }
 }
